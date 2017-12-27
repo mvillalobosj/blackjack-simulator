@@ -1,4 +1,6 @@
 from copy import deepcopy
+from time import sleep
+import argparse
 import os
 import random
 
@@ -63,6 +65,13 @@ pair_moves = {
     20: ['s', 's', 's', 's', 's', 's', 's', 's', 's', 's']   # nopep8
 }
 
+formatted_moves = {
+    'h': '(h)it',
+    's': '(s)tand',
+    'd': '(d)ouble down',
+    'p': 's(p)lit'
+}
+
 
 def average(l):
     return sum(l) / len(l)
@@ -102,11 +111,6 @@ class Deck:
         deck = deepcopy(self.base_deck)
         shuffled_deck = [
             deck.pop(random.randint(0, len(deck) - 1)) for i in range(len(deck))]
-
-   #     while len(deck) > 0:
-   #         shuffled_deck.append(
-   #3             deck.pop(random.randint(0, len(deck) - 1))
-   #         )
 
         self.shuffled_deck = shuffled_deck
 
@@ -230,24 +234,24 @@ class Hand:
     def print_hand(self, hidden=False):
         if hidden:
             cards = deepcopy(self.cards)
-            cards[0].number = 'X'
-            cards[0].suit = 'X'
+            cards[0].number = '▓'
+            cards[0].suit = '▓'
         else:
             cards = self.cards
 
         hand = ' '.join(str(card) for card in cards)
         hand_type, value = self._hand_value
-        if hidden:
+        if hidden and len(self.cards) > 1:
             value = self.cards[1].get_value()
             if value == 1:
-                hand += ' ({} or {})'.format(value, value + 10)
+                hand += '\nValue: ({} or {})'.format(value, value + 10)
             else:
-                hand += ' ({})'.format(value)
-        else:
+                hand += '\nValue: ({})'.format(value)
+        elif not hidden:
             if hand_type == SOFT:
-                hand += ' ({} {} or {})'.format(hand_type, value - 10, value)
+                hand += '\nValue: ({} {} or {})'.format(hand_type, value - 10, value)
             else:
-                hand += ' ({} {})'.format(hand_type, value)
+                hand += '\nValue: ({} {})'.format(hand_type, value)
         if self.busted:
             hand += ' BUSTED '
         elif self.blackjack:
@@ -325,10 +329,16 @@ class Dealer(Character):
         return 0
 
     def print_dealer(self, hidden):
-        return str(self.hands[0].print_hand(hidden))
+        if self.hands:
+            return str(self.hands[0].print_hand(hidden))
+        else:
+            return ''
 
     def __str__(self):
-        return str(self.hands[0])
+        if self.hands:
+            return str(self.hands[0])
+        else:
+            return ''
 
 
 class Player(Character):
@@ -389,18 +399,21 @@ class Game:
 
     def print_board(self, hidden=False):
         os.system('clear')
-        print("Chip Count: {}".format(self.chip_count))
         print("Dealer")
         print(self.dealer.print_dealer(hidden))
-        print("\n----\n")
-        print("Player")
+        print("\n--------------------------------------\n")
+        print("Player  (Current Chip Count: {})".format(self.chip_count))
         print(self.player)
         print("----")
 
-    def get_move(self, current_hand, allowed_moves, suggested_move):
-        print("Current Hand: {}".format(current_hand + 1))
-        print("Allowed Moves: {}".format("".join(allowed_moves)))
-        print("Suggested Move: {}".format(suggested_move))
+    def get_move(self, current_hand, allowed_moves, suggested_move, include_hints=True):
+        moves = []
+        for move in allowed_moves:
+            moves.append(formatted_moves[move])
+        print("\n\nHand {}".format(current_hand + 1))
+        print("Allowed Moves: {}".format(" ".join(moves)))
+        if include_hints:
+            print("Suggested Move: {}".format(formatted_moves[suggested_move]))
         print("----")
         move = input("What's your Move?: ")
         while move not in allowed_moves:
@@ -418,36 +431,67 @@ class Game:
         else:
             return None
 
-    def setup_game(self, base_bet):
+    def setup_game(self, base_bet, interactive):
         self.dealer = Dealer(self.deck)
         self.player = Player(self.deck, self.chip_count, base_bet)
         self.player.add_hand([self.deck.deal()])
+        if interactive:
+            self.print_board(True)
+            sleep(1)
         self.dealer.add_hand([self.deck.deal()])
+        if interactive:
+            self.print_board(True)
+            sleep(1)
         self.player.add_card_to_hand(0)
+        if interactive:
+            self.print_board(True)
+            sleep(1)
         self.dealer.add_card_to_hand(0)
+        if interactive:
+            self.print_board(True)
+            sleep(1)
         self.player.hands[0].reset_additional_cards()
         self.dealer.hands[0].reset_additional_cards()
         self.player.hands[0].calculate_value()
         self.dealer.hands[0].calculate_value()
 
-    def run_game(self):
-        self.setup_game(self.bet)
+    def run_automatic_game(self):
+        self.setup_game(self.bet, False)
         hand = self.get_current_hand()
-        # self.print_board(hidden=True)
         while hand is not None and self.dealer.hands[0].blackjack is False:
-            # allowed_moves = self.player.allowed_moves(hand)
             suggested_move = self.player.suggested_move(
                 hand, self.dealer.hands[0].cards[1].number)
-            move = suggested_move  # self.get_move(hand, allowed_moves, suggested_move)
+            move = suggested_move
             self.make_move(move, hand)
             hand = self.get_current_hand()
-            # self.print_board(hidden=True)
         while self.dealer.allowed_moves(0):
             self.dealer.make_move(self.dealer.allowed_moves(0)[0], 0)
-        # self.print_board()
         winnings = self.get_winnings()
-        # print("Winnings: {}".format(winnings))
-        # input("")
+        return winnings
+
+    def run_interactive_game(self, show_hints):
+        self.setup_game(self.bet, True)
+        hand = self.get_current_hand()
+        self.print_board(hidden=True)
+        while hand is not None and self.dealer.hands[0].blackjack is False:
+            allowed_moves = self.player.allowed_moves(hand)
+            suggested_move = self.player.suggested_move(
+                hand, self.dealer.hands[0].cards[1].number)
+            move = self.get_move(hand, allowed_moves, suggested_move, show_hints)
+            self.make_move(move, hand)
+            hand = self.get_current_hand()
+            self.print_board(hidden=True)
+        while self.dealer.allowed_moves(0):
+            self.dealer.make_move(self.dealer.allowed_moves(0)[0], 0)
+        self.print_board()
+        winnings = self.get_winnings()
+        if winnings > 0:
+            print("\n\n:-) You Won {}!".format(winnings))
+        elif winnings < 0:
+            print("\n\n:-( You Lost {}".format(winnings * -1))
+        else:
+            print("\n\n:-| Push! You got your money back")
+        input("\n\nPress Enter to play again")
         return winnings
 
     def get_winnings(self):
@@ -492,13 +536,15 @@ class Reporter:
         self.max_chip_count = 0
         self.games_to_goal = []
         self.games_to_bankrupt = []
+        self.winnings = []
 
     def print_bet_report(self):
         print("Bet: {}".format(self.bet))
         print("Bankrupt Count: {}".format(self.bankrupt))
         print("Average games to bankrupt: {}".format(average(self.games_to_bankrupt)))
-        print("Goal Gount: {}".format(self.hit_goal))
+        print("Goal Count: {}".format(self.hit_goal))
         print("Average games to goal: {}".format(average(self.games_to_goal)))
+        print("Average Winnings: {}".format(average(self.winnings)))
         print("Game Count: {}".format(self.bet_game_count))
         print("Hit Maximum Bet: {}".format(self.hit_maximum_bet))
         print("Maximum Chip Count: {}".format(self.max_chip_count))
@@ -516,6 +562,7 @@ class Reporter:
         print("Best Bet: {}".format(best_summary['bet']))
         print("Goal Percentage: {}".format(best_summary['goal_percent']))
         print("Avg Games to Goal: {}".format(best_summary['games_to_goal']))
+        print("Avg Winnings: {}".format(best_summary['average_winnings']))
         print("Total Game Count: {}".format(self.total_game_count))
         print("Win Count: {}".format(self.win_count))
         print("Lose Count: {}".format(self.lose_count))
@@ -524,8 +571,9 @@ class Reporter:
 
     def record_game_results(self, winnings, chip_count, is_max_bet):
         self.max_chip_count = max(self.max_chip_count, chip_count)
-        if winnings > 0:
+        if winnings > self.bet:
             self.win_count += 1
+            self.winnings.append(winnings)
         elif winnings < 0:
             self.lose_count += 1
         if is_max_bet:
@@ -545,7 +593,8 @@ class Reporter:
         bet_summary = {
             'bet': self.bet,
             'goal_percent': (self.hit_goal / (self.hit_goal + self.bankrupt)) * 100,
-            'games_to_goal': average(self.games_to_goal)
+            'games_to_goal': average(self.games_to_goal),
+            'average_winnings': average(self.winnings)
         }
         self.bet_summary.append(bet_summary)
 
@@ -599,7 +648,7 @@ class ProgressiveWinningSystem(BettingStragegy):
         elif winnings < 0:
             self.modifier = 1
 
-        next_bet = base_bet * (2 ** self.modifier)
+        next_bet = base_bet * self.modifier
         is_max_bet = False
         if next_bet > maximum_bet:
             next_bet = maximum_bet
@@ -627,6 +676,12 @@ class ProgressiveLosingSystem(BettingStragegy):
         return next_bet, is_max_bet
 
 
+class AlexSystem(BettingStragegy):
+
+    def get_next_bet(self, winnings, last_bet, maximum_bet, base_bet):
+        return base_bet, False
+
+
 class Gambler:
     def __init__(self, base_chip_count, winnings_goal, bet_unit):
         self.base_chip_count = base_chip_count
@@ -648,12 +703,13 @@ class Table:
         self.ante = ante
 
 
-def run():
-    gambler = Gambler(base_chip_count=1000, winnings_goal=100, bet_unit=5)
+def run_automatic_game(chip_count=200):
+    gambler = Gambler(base_chip_count=chip_count, winnings_goal=100, bet_unit=5)
     table = Table(maximum_bet=500, ante=0.5)
     deck = Deck(6)
 
     betting_systems = [
+        AlexSystem(),
         OscarSystem(),
         ProgressiveLosingSystem(),
         ProgressiveWinningSystem()
@@ -662,8 +718,8 @@ def run():
     for better in betting_systems:
         reporter = Reporter(better.__class__.__name__)
         reporter.reset_overall_report()
-        bet = 0
-        while bet < 100:
+        bet = 5
+        while bet == 5:
             bet = bet + gambler.bet_unit
             reporter.reset_bet_report(bet)
 
@@ -680,7 +736,7 @@ def run():
                     if next_bet > gambler.chip_count:
                         next_bet = gambler.chip_count
                     game = Game(deck, gambler.chip_count, next_bet)
-                    winnings = game.run_game()
+                    winnings = game.run_automatic_game()
                     gambler.chip_count += winnings
 
                     next_bet, is_max_bet =\
@@ -695,5 +751,65 @@ def run():
 
         reporter.print_overall_report()
 
+
+def run_interactive_game(chip_count=200, show_hints=True):
+    gambler = Gambler(base_chip_count=chip_count, winnings_goal=100, bet_unit=5)
+    table = Table(maximum_bet=500, ante=0)
+    deck = Deck(6)
+    reporter = Reporter('self')
+    reporter.reset_session()
+    gambler.reset()
+    next_bet = 5
+
+    while not gambler.done():
+        os.system('clear')
+        if len(deck.shuffled_deck) < 52:
+            deck.shuffle()
+        print("Current Chips: {}".format(gambler.chip_count))
+        print("Maximum Bet: {}".format(table.maximum_bet))
+        bet = input(str("How much do you want to bet? (press enter to bet {}) ".format(next_bet)))
+        if bet:
+            next_bet = int(bet)
+        gambler.chip_count -= table.ante
+        if next_bet > gambler.chip_count:
+            next_bet = gambler.chip_count
+        if next_bet > table.maximum_bet:
+            next_bet = table.maximum_bet
+        game = Game(deck, gambler.chip_count, next_bet)
+        winnings = game.run_interactive_game(show_hints)
+        gambler.chip_count += winnings
+
+        reporter.record_game_results(
+            winnings, gambler.chip_count, next_bet == 500)
+
+    reporter.record_session_results(gambler.chip_count)
+
+    reporter.record_bet_results(gambler.chip_count)
+
+    reporter.print_overall_report()
+
 if __name__ == '__main__':
-    run()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-a',
+        '--automatic',
+        action='store_true',
+        help="Automatic Mode. If set, will play game automatically.")
+    parser.add_argument(
+        '-c',
+        '--chip-count',
+        type=int,
+        default=200,
+        help="Starting chip count")
+    parser.add_argument(
+        '-n',
+        '--no-hints',
+        action='store_false',
+        help="Hide hints. If set, the recommended move is not shown.")
+
+    args = parser.parse_args()
+
+    if args.automatic:
+        run_automatic_game(args.chip_count)
+    else:
+        run_interactive_game(args.chip_count, args.no_hints)
