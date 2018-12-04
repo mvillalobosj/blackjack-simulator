@@ -1,4 +1,5 @@
 from .renderer import Renderer
+from .rules import GameRules
 
 
 class Game:
@@ -31,9 +32,11 @@ class Game:
                 hand = player.active_hands[0]
                 if hand.card_count == 1 and hand.was_split:
                     player.hit(hand)
+                    hand.reset_additional_cards()
                 allowed_moves = player.allowed_moves(hand)
                 if not allowed_moves:
                     continue
+                self.renderer.render_game()
                 move = self.get_move(hand, allowed_moves, player, dealer)
 
                 if move not in allowed_moves:
@@ -60,7 +63,7 @@ class Game:
             if hand.busted:
                 total_winnings -= hand.bet_value
             elif hand.blackjack and not dealer_hand.blackjack:
-                total_winnings += hand.bet_value * 3 / 2
+                total_winnings += hand.bet_value * GameRules.blackjack_modifier
             elif dealer_hand.busted:
                 total_winnings += hand.bet_value
             else:
@@ -91,6 +94,11 @@ class InteractiveGame(Game):
         self.show_hints = show_hints
 
     def get_move(self, hand, allowed_moves, player, dealer):
+        if len(allowed_moves) == 1:
+            for move in allowed_moves:
+                break
+            return move
+
         moves = [self.formatted_moves[move] for move in allowed_moves]
         print("\n\nHand {}".format(hand.hand_number))
         print("Allowed Moves: {}".format(" ".join(moves)))

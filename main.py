@@ -1,15 +1,56 @@
 import argparse
+import json
 
-from src import betting
 from src.analytics import Reporter
-from src.deck import BlackJackDeck  # , RiggedDeck, PlayingCard
+from src.card import BlackJackCard
+from src.deck import RiggedDeck
 from src.game import AutomaticGame, InteractiveGame
 from src.player import Dealer, Gambler
 from src.renderer import InteractiveRenderer
+from src.rules import GameRules
 from src.table import Table
 
 
-def run_game(betting_systems, game, dealer, gambler, session_count):
+def start(is_automatic, json_rules):
+    GameRules.set_rules_from_json(json_rules)
+    shuffle_each_game = False
+    card_list = []
+    if GameRules.card_list:
+        for i, card in enumerate(GameRules.card_list, 1):
+            if card != 'X':
+                card_list.append((BlackJackCard('', card), i))
+        shuffle_each_game = True
+
+    deck = RiggedDeck(
+        rigged_cards=card_list,
+        num_decks=GameRules.table_deck_count,
+        cut_card_position=GameRules.table_cut_card_position)
+
+    gambler = Gambler(
+        base_chip_count=GameRules.chip_count,
+        winnings_goal=GameRules.winnings_goal,
+        bet_unit=GameRules.betting_unit,
+        walk_away=GameRules.walk_away_amount)
+    Table.setup(
+        maximum_bet=GameRules.table_maximum,
+        minimum_bet=GameRules.table_minimum,
+        ante=GameRules.table_ante,
+        deck=deck
+    )
+    dealer = Dealer()
+
+    if is_automatic:
+        betting_systems = GameRules.automatic_betting_systems
+        game = AutomaticGame()
+    else:
+        betting_systems = GameRules.interactive_betting_systems
+        game = InteractiveGame(
+            InteractiveRenderer(gambler, dealer), not GameRules.no_hints)
+
+    run_game(betting_systems, game, dealer, gambler, shuffle_each_game)
+
+
+def run_game(betting_systems, game, dealer, gambler, shuffle_each_game):
     for system in betting_systems:
         better = system(gambler, Table)
         reporter = Reporter(better.__class__.__name__, gambler, Table)
@@ -17,12 +58,15 @@ def run_game(betting_systems, game, dealer, gambler, session_count):
 
         reporter.reset_bet_report(gambler.bet_unit)
 
-        for i in range(session_count):
+        for i in range(GameRules.session_count):
             reporter.reset_session()
             better.reset()
             gambler.reset_chip_count()
             winnings = 0
             while gambler.can_play(Table.minimum_bet + Table.ante):
+                if shuffle_each_game:
+                    Table.deck.shuffle()
+
                 gambler.remove_chips(Table.ante)
 
                 gambler.make_initial_bet(better)
@@ -42,16 +86,6 @@ def run_game(betting_systems, game, dealer, gambler, session_count):
         # reporter.print_bet_report()
         reporter.print_overall_report()
 
-
-# def run_rigged_game(
-#        betting_systems, game, dealer, gambler, session_count, cards):
-#    for system in betting_systems:
-#        better = system(gambler, Table)
-#        for i in range(session_count):
-#            better.reset()
-#            gambler.reset_chip_count()
-#            Table.deck.shuffle(cards)
-#            winnings = game.run_game(gambler, dealer)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -125,47 +159,29 @@ if __name__ == '__main__':
         '--no-hints',
         action='store_true',
         help="Hide hints. If set, the recommended move is not shown.")
+    parser.add_argument(
+        '-r',
+        '--rigged',
+        nargs='*',
+        help='Run rigged game. Enter in the first cards in the deck. Type X to skip a position')
 
     args = parser.parse_args()
 
-    gambler = Gambler(
-        base_chip_count=args.chip_count,
+    card_list = args.rigged
+    shuffle_each_game = False
+
+    json_rules = json.dumps(dict(
+        chip_count=args.chip_count,
         winnings_goal=args.goal,
-        bet_unit=args.bet,
-        walk_away=args.walk_away)
-    Table.setup(
-        maximum_bet=args.table_maximum,
-        minimum_bet=args.table_minimum,
-        ante=args.table_ante,
-        deck=BlackJackDeck(
-            num_decks=args.deck_count,
-            cut_card_position=args.cut_card_position
-        )
-    )
-    dealer = Dealer()
-
-#    Table.deck = RiggedDeck(
-#        num_decks=args.deck_count,
-#        cut_card_position=args.cut_card_position)
-#    cards = [
-#        (PlayingCard('', '2'), 1),
-#        (PlayingCard('', 'J'), 3)
-#    ]
-
-    if args.automatic:
-        betting_systems = [
-            betting.AlexSystem,
-            betting.RyanSystem,
-            betting.OscarSystem,
-            betting.ProgressiveLosingSystem,
-            betting.ProgressiveWinningSystem,
-            betting.ThirteenTwentySix
-        ]
-        game = AutomaticGame()
-        run_game(betting_systems, game, dealer, gambler, args.session_count)
-    else:
-        betting_systems = [betting.InteractiveBetter]
-        game = InteractiveGame(
-            InteractiveRenderer(gambler, dealer),
-            not args.no_hints)
-        run_game(betting_systems, game, dealer, gambler, 1)
+        betting_unit=args.bet,
+        walk_away_amount=args.walk_away,
+        table_maximum=args.table_maximum,
+        table_minimum=args.table_minimum,
+        table_ante=args.table_ante,
+        table_deck_count=args.deck_count,
+        table_cut_card_position=args.cut_card_position,
+        session_count=args.session_count,
+        no_hints=args.no_hints,
+        card_list=card_list
+    ))
+    start(args.automatic, json_rules)

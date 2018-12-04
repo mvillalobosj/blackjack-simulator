@@ -5,8 +5,6 @@ import os
 class BettingStrategy:
     def __init__(self, gambler, table):
         self.reset()
-        self.gambler = gambler
-        self.table = table
 
     def reset(self):
         pass
@@ -16,6 +14,11 @@ class BettingStrategy:
 
 
 class InteractiveBetter(BettingStrategy):
+
+    def __init__(self, gambler, table):
+        super().__init__()
+        self.gambler = gambler
+        self.table = table
 
     def get_next_bet(self, winnings, last_bet, base_bet):
         os.system('clear')
@@ -30,6 +33,7 @@ class InteractiveBetter(BettingStrategy):
 
 
 class OscarSystem(BettingStrategy):
+
     def reset(self):
         self.total = 0
         self.modifier = 1
@@ -60,7 +64,7 @@ class ProgressiveWinningSystem(BettingStrategy):
         elif winnings < 0:
             self.modifier = 0
 
-        next_bet = base_bet * (2 ** self.modifier) - base_bet
+        next_bet = base_bet * (2 ** self.modifier)
 
         return next_bet
 

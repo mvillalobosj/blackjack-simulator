@@ -1,30 +1,11 @@
 from copy import deepcopy
 import random
 
+from .card import BlackJackCard
+
 
 class DeckEmpty(Exception):
     pass
-
-
-class Card:
-    suits = []
-    numbers = []
-
-    def __init__(self, suit, number):
-        self.suit = suit
-        self.number = number
-
-    def get_value(self):
-        pass
-
-    @classmethod
-    def get_all_cards(cls):
-        return [
-            cls(suit, number) for suit in cls.suits for number in cls.numbers
-        ]
-
-    def __str__(self):
-        return "{}{}".format(self.number, self.suit)
 
 
 class Deck:
@@ -49,33 +30,11 @@ class Deck:
     def _get_sorted_deck(self, num_decks):
         sorted_decks = []
         for number in range(num_decks):
-            for card in self.card_obj.get_all_cards():
-                sorted_decks.append(card)
+            sorted_decks.extend(self.card_obj.get_all_cards())
         return sorted_decks
 
     def __str__(self):
         return '\n'.join(str(card) for card in self.deck)
-
-
-class PlayingCard(Card):
-    suits = '♠♥♦♣'
-    numbers = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']  # nopep8
-    face_cards = ['10', 'J', 'Q', 'K']
-
-    @property
-    def is_face_card(self):
-        return self.number in self.face_cards
-
-
-class BlackJackCard(PlayingCard):
-
-    def get_value(self):
-        if self.number == 'A':
-            return 1
-        elif self.is_face_card:
-            return 10
-        else:
-            return int(self.number)
 
 
 class BlackJackDeck(Deck):
@@ -90,16 +49,21 @@ class BlackJackDeck(Deck):
 
 
 class RiggedDeck(BlackJackDeck):
+    def __init__(self, rigged_cards, *args, **kwargs):
+        self._rigged_cards = rigged_cards
+        super().__init__(*args, **kwargs)
+
     def swap(self, ind1, ind2):
         deck = self.shuffled_deck
         deck[ind1], deck[ind2] = deck[ind2], deck[ind1]
 
-    def shuffle(self, cards):
+    def shuffle(self):
         super(RiggedDeck, self).shuffle()
+        if not self._rigged_cards:
+            return
+        rigged_cards = deepcopy(self._rigged_cards)
         for index, card in enumerate(self.shuffled_deck):
-            if not cards:
-                return
-            for en_index, (new_card, new_index) in enumerate(cards):
+            for en_index, (new_card, new_index) in enumerate(rigged_cards):
                 if new_card.number == card.number:
                     self.swap(index, -1 * new_index)
-                    cards.pop(en_index)
+                    rigged_cards.pop(en_index)

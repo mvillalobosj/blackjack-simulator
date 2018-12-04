@@ -1,3 +1,4 @@
+from .rules import GameRules
 from .table import Table
 
 SOFT = 'soft'
@@ -10,57 +11,6 @@ HIT = 'h'
 STAND = 's'
 SPLIT = 'p'
 DOUBLE_DOWN = 'd'
-
-
-hard_moves = {
-     1: ['h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-     2: ['h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-     3: ['h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-     4: ['h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-     5: ['h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-     6: ['h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-     7: ['h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-     8: ['h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-     9: ['h', 'd', 'd', 'd', 'd', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    10: ['d', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'h', 'h'],  # nopep8
-    11: ['d', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd'],  # nopep8
-    12: ['h', 'h', 's', 's', 's', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    13: ['s', 's', 's', 's', 's', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    14: ['s', 's', 's', 's', 's', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    15: ['s', 's', 's', 's', 's', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    16: ['s', 's', 's', 's', 's', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    17: ['s', 's', 's', 's', 's', 's', 's', 's', 's', 's'],  # nopep8
-    18: ['s', 's', 's', 's', 's', 's', 's', 's', 's', 's'],  # nopep8
-    19: ['s', 's', 's', 's', 's', 's', 's', 's', 's', 's'],  # nopep8
-    20: ['s', 's', 's', 's', 's', 's', 's', 's', 's', 's']   # nopep8
-}
-
-soft_moves = {
-    11: ['d', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd'],  # nopep8
-    12: ['h', 'h', 'h', 'd', 'd', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    13: ['h', 'h', 'h', 'd', 'd', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    14: ['h', 'h', 'h', 'd', 'd', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    15: ['h', 'h', 'd', 'd', 'd', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    16: ['h', 'h', 'd', 'd', 'd', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    17: ['h', 'd', 'd', 'd', 'd', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    18: ['d', 'd', 'd', 'd', 'd', 's', 's', 'h', 'h', 'h'],  # nopep8
-    19: ['s', 's', 's', 's', 'd', 's', 's', 's', 's', 's'],  # nopep8
-    20: ['s', 's', 's', 's', 's', 's', 's', 's', 's', 's'],  # nopep8
-    21: ['s', 's', 's', 's', 's', 's', 's', 's', 's', 's']   # nopep8
-}
-
-pair_moves = {
-     2: ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],  # nopep8
-     4: ['p', 'p', 'p', 'p', 'p', 'p', 'h', 'h', 'h', 'h'],  # nopep8
-     6: ['p', 'p', 'p', 'p', 'p', 'p', 'h', 'h', 'h', 'h'],  # nopep8
-     8: ['h', 'h', 'h', 'p', 'p', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    10: ['d', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'h', 'h'],  # nopep8
-    12: ['p', 'p', 'p', 'p', 'p', 'h', 'h', 'h', 'h', 'h'],  # nopep8
-    14: ['p', 'p', 'p', 'p', 'p', 'p', 'h', 'h', 'h', 'h'],  # nopep8
-    16: ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],  # nopep8
-    18: ['p', 'p', 'p', 'p', 'p', 's', 'p', 'p', 's', 's'],  # nopep8
-    20: ['s', 's', 's', 's', 's', 's', 's', 's', 's', 's']   # nopep8
-}
 
 
 class Hand:
@@ -161,7 +111,7 @@ class Hand:
             return False
         return (
             self.cards[0].number == self.cards[1].number or
-            self.cards[0].is_face_card and self.cards[1].is_face_card
+            (self.cards[0].is_face_card and self.cards[1].is_face_card and not GameRules.split_tens_must_be_same)
         )
 
     def is_blackjack(self):
@@ -211,7 +161,6 @@ class Character:
 
     def split(self, hand):
         new_hand = self.add_hand([hand.remove_card()])
-        hand.reset_additional_cards()
         hand.was_split = True
         new_hand.was_split = True
 
@@ -252,7 +201,7 @@ class Dealer(Character):
             return STAND
 
     def make_move(self):
-        super(Dealer, self).make_move(self.allowed_move(), self.hand)
+        super().make_move(self.allowed_move(), self.hand)
 
     @property
     def hand(self):
@@ -269,6 +218,19 @@ class Dealer(Character):
 
 class Player(Character):
 
+    def can_split(self, hand):
+        if not hand.is_pair():
+            return False
+        if GameRules.resplit_maximum > 0 and len(self.hands) > GameRules.resplit_maximum:
+            return False
+        if hand.cards[0].number == 'A':
+            if GameRules.no_split_aces:
+                return False
+            if GameRules.no_resplit_aces and hand.was_split:
+                return False
+
+        return True
+
     def allowed_moves(self, hand):
         hand_type, value = hand.hand_value
         if hand.busted or hand.locked:
@@ -276,10 +238,18 @@ class Player(Character):
 
         allowed_moves = set([HIT, STAND])
 
-        if hand.is_pair():
+        if (
+            hand.was_split and
+            hand.cards[0].number == 'A' and
+            len(hand.cards) > 1 and
+            not GameRules.multiple_draw_after_split_aces
+        ):
+            allowed_moves.remove(HIT)
+
+        if self.can_split(hand):
             allowed_moves.add(SPLIT)
 
-        if hand.added_cards == 0:
+        if hand.added_cards == 0 and HIT in allowed_moves:
             allowed_moves.add(DOUBLE_DOWN)
 
         return allowed_moves
@@ -294,22 +264,24 @@ class Player(Character):
         else:
             dealer_index = int(dealer_card.number) - 2
 
-        if hand.is_pair() and SPLIT in allowed_moves:
-            suggested_move = pair_moves[value][dealer_index]
+        if SPLIT in allowed_moves:
+            suggested_move = GameRules.pair_moves[value][dealer_index]
         elif hand_type == HARD:
-            suggested_move = hard_moves[value][dealer_index]
+            suggested_move = GameRules.hard_moves[value][dealer_index]
         elif hand_type == SOFT:
-            suggested_move = soft_moves[value][dealer_index]
+            suggested_move = GameRules.soft_moves[value][dealer_index]
 
         if suggested_move == DOUBLE_DOWN and DOUBLE_DOWN not in allowed_moves:
             suggested_move = HIT
+        if suggested_move == HIT and HIT not in allowed_moves:
+            suggested_move = STAND
 
         return suggested_move
 
 
 class Gambler(Player):
     def __init__(self, base_chip_count, winnings_goal, bet_unit, walk_away=0):
-        super(Gambler, self).__init__()
+        super().__init__()
 
         self.base_chip_count = base_chip_count
         self.walk_away = walk_away
@@ -326,7 +298,7 @@ class Gambler(Player):
         self.current_bet = self.bet_unit
 
     def reset(self):
-        super(Gambler, self).reset()
+        super().reset()
         self.total_bet = 0
 
     def can_play(self, minimum_bet):
@@ -351,7 +323,7 @@ class Gambler(Player):
         return value
 
     def allowed_moves(self, hand):
-        allowed_moves = super(Gambler, self).allowed_moves(hand)
+        allowed_moves = super().allowed_moves(hand)
 
         if self.current_chip_count - self.current_bet < 0:
             allowed_moves.discard(SPLIT)

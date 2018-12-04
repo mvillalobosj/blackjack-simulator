@@ -74,3 +74,4 @@ secrets/*
 test_versions/
 
 alembic.env
+pyenv
