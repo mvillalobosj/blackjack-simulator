@@ -16,7 +16,7 @@ class BettingStrategy:
 class InteractiveBetter(BettingStrategy):
 
     def __init__(self, gambler, table):
-        super().__init__()
+        super().__init__(gambler, table)
         self.gambler = gambler
         self.table = table
 
