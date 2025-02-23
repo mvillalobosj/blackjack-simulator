@@ -1,8 +1,7 @@
 # blackjack-simulator
 
+`make build` to build the image.
+`make run` to play an interactive game of blackjack.
+`make auto` to run all blackjack simulations.
 
-`python3 main.py -h` for options on how to run the blackjack simulator.
-
-`python3 main.py` to play the game in console
-
-`python3 main.py -a` to run blackjack simulations
+Refer to main.py to change settings for the blackjack simulations.

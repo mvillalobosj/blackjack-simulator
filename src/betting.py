@@ -28,6 +28,8 @@ class InteractiveBetter(BettingStrategy):
             str("How much do you want to bet? (press enter to bet {}) ".format(
                 base_bet)))
         if next_bet:
+            if next_bet.lower() == "q":
+                exit()
             return int(next_bet)
         return base_bet
 

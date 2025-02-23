@@ -31,6 +31,7 @@ class Reporter:
         self.games_to_goal = []
         self.games_to_bankrupt = []
         self.winnings = []
+        self.session_earnings = []
         self.total_winnings = 0
         self.total_loss = 0
 
@@ -59,6 +60,7 @@ class Reporter:
         print("Goal Percentage: {}".format(best_summary['goal_percent']))
         print("Avg Games to Goal: {}".format(best_summary['games_to_goal']))
         print("Avg Winnings: {}".format(best_summary['average_winnings']))
+        print("Avg Winnings: {}".format(best_summary['average_winnings']))
         print("Total Game Count: {}".format(self.total_game_count))
         print("Win Count: {}".format(self.win_count))
         print("Lose Count: {}".format(self.lose_count))
@@ -66,6 +68,7 @@ class Reporter:
         print("Total Winnings: {}".format(self.total_winnings))
         print("Total Loss: {}".format(self.total_loss))
         print("Net Earnings: {}".format(self.total_winnings - self.total_loss))
+        print("Avg Earnings: {}".format(best_summary['average_earnings']))
         print("-----------------------------")
 
     def record_game_results(self):
@@ -93,6 +96,8 @@ class Reporter:
             self.bankrupt += 1
             self.games_to_bankrupt.append(self.game_count)
             self.total_loss += self.gambler.base_chip_count - chip_count
+
+        self.session_earnings.append(chip_count - self.gambler.base_chip_count)
         self.bet_game_count += self.game_count
 
     def record_bet_results(self):
@@ -100,7 +105,9 @@ class Reporter:
             'bet': self.bet,
             'goal_percent': (self.hit_goal / (self.hit_goal + self.bankrupt)) * 100,
             'games_to_goal': average(self.games_to_goal),
-            'average_winnings': average(self.winnings)
+            'games_to_walk': average(self.games_to_bankrupt),
+            'average_winnings': average(self.winnings),
+            'average_earnings': average(self.session_earnings),
         }
         self.bet_summary.append(bet_summary)
 

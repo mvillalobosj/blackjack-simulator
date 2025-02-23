@@ -1,6 +1,8 @@
 import argparse
 import json
 
+from tqdm import tqdm
+
 from src.analytics import Reporter
 from src.card import BlackJackCard
 from src.deck import RiggedDeck
@@ -42,23 +44,34 @@ def start(is_automatic, json_rules):
     if is_automatic:
         betting_systems = GameRules.automatic_betting_systems
         game = AutomaticGame()
+        print_progress = True
     else:
         betting_systems = GameRules.interactive_betting_systems
         game = InteractiveGame(
             InteractiveRenderer(gambler, dealer), not GameRules.no_hints)
+        print_progress = False
 
-    run_game(betting_systems, game, dealer, gambler, shuffle_each_game)
+    run_game(betting_systems, game, dealer, gambler, shuffle_each_game, print_progress)
 
 
-def run_game(betting_systems, game, dealer, gambler, shuffle_each_game):
+def run_game(betting_systems, game, dealer, gambler, shuffle_each_game, print_progress):
+    winning_amounts = []
     for system in betting_systems:
         better = system(gambler, Table)
-        reporter = Reporter(better.__class__.__name__, gambler, Table)
+        system_name = better.__class__.__name__
+
+        reporter = Reporter(system_name, gambler, Table)
         reporter.reset_overall_report()
 
         reporter.reset_bet_report(gambler.bet_unit)
 
-        for i in range(GameRules.session_count):
+        range_func = range(GameRules.session_count)
+        if print_progress:
+            range_func = tqdm(
+                range(GameRules.session_count),
+                desc=system_name,
+                unit='sessions')
+        for i in range_func:
             reporter.reset_session()
             better.reset()
             gambler.reset_chip_count()
@@ -85,6 +98,14 @@ def run_game(betting_systems, game, dealer, gambler, shuffle_each_game):
         reporter.record_bet_results()
         # reporter.print_bet_report()
         reporter.print_overall_report()
+        net_earn = reporter.total_winnings - reporter.total_loss
+        winning_amounts.append((system_name, net_earn))
+
+    print("Betting Strategy Rankings")
+    winning_amounts.sort(key=lambda x: x[1], reverse=True)
+    for i, strategy in enumerate(winning_amounts, 1):
+        print(f"{i}. {strategy[0]:<25}   {strategy[1]:>10.2f}")
+
 
 
 if __name__ == '__main__':
@@ -116,14 +137,14 @@ if __name__ == '__main__':
         '-w',
         '--walk-away',
         type=int,
-        default=0,
-        help="Walk Away amount (Default: 0)")
+        default=100,
+        help="Walk Away amount (Default: 100)")
     parser.add_argument(
         '-s',
         '--session-count',
         type=int,
-        default=1000,
-        help="Number of sessions to play per betting strategy (Default: 1000)")
+        default=10000,
+        help="Number of sessions to play per betting strategy (Default: 10000)")
     parser.add_argument(
         '-t',
         '--table-maximum',

@@ -1,0 +1,7 @@
+services:
+  app:
+    build:
+      context: .
+    volumes:
+      - ./src:/app/src
+      - ./main.py:/app/main.py
