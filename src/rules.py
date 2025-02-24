@@ -75,7 +75,7 @@ class GameRules:
     table_maximum = 500
     table_minimum = 5
     table_ante = 0
-    table_deck_count = 4
+    table_deck_count = 6
     table_cut_card_position = 52
 
     session_count = 1000
@@ -84,9 +84,12 @@ class GameRules:
 
     blackjack_modifier = 1.5
 
+    # dealer rules
+    dealer_hit_soft_17 = True
+
     # split rules
-    resplit_maximum = 4
-    no_resplit_aces = False
+    resplit_maximum = 2
+    no_resplit_aces = True
     no_split_aces = False
     multiple_draw_after_split_aces = False
     split_tens_must_be_same = False

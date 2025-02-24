@@ -195,7 +195,7 @@ class Dealer(Character):
             return None
 
         hand_type, value = self.hand.hand_value
-        if value < 17 or (value == 17 and hand_type == SOFT):
+        if value < 17 or (value == 17 and hand_type == SOFT and GameRules.dealer_hit_soft_17):
             return HIT
         else:
             return STAND

@@ -137,14 +137,14 @@ if __name__ == '__main__':
         '-w',
         '--walk-away',
         type=int,
-        default=100,
-        help="Walk Away amount (Default: 100)")
+        default=50,
+        help="Walk Away amount (Default: 50)")
     parser.add_argument(
         '-s',
         '--session-count',
         type=int,
-        default=10000,
-        help="Number of sessions to play per betting strategy (Default: 10000)")
+        default=100000,
+        help="Number of sessions to play per betting strategy (Default: 100000)")
     parser.add_argument(
         '-t',
         '--table-maximum',
@@ -156,7 +156,7 @@ if __name__ == '__main__':
         '--table-minimum',
         type=int,
         default=5,
-        help="Table maximum bet (Default: 5)")
+        help="Table minimum bet (Default: 5)")
     parser.add_argument(
         '-e',
         '--table-ante',
@@ -167,8 +167,8 @@ if __name__ == '__main__':
         '-d',
         '--deck-count',
         type=int,
-        default=4,
-        help="Number of decks to play (Default: 4)")
+        default=6,
+        help="Number of decks to play (Default: 6)")
     parser.add_argument(
         '-u',
         '--cut-card-position',

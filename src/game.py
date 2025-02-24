@@ -63,7 +63,10 @@ class Game:
             if hand.busted:
                 total_winnings -= hand.bet_value
             elif hand.blackjack and not dealer_hand.blackjack:
-                total_winnings += hand.bet_value * GameRules.blackjack_modifier
+                if hand.was_split:
+                    total_winnings += hand.bet_value
+                else:
+                    total_winnings += hand.bet_value * GameRules.blackjack_modifier
             elif dealer_hand.busted:
                 total_winnings += hand.bet_value
             else:
