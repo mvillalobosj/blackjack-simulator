@@ -56,7 +56,7 @@ class GameRules:
     }
 
     automatic_betting_systems = [
-        betting.AlexSystem,
+        # betting.AlexSystem,
         betting.RyanSystem,
         betting.OscarSystem,
         betting.ProgressiveLosingSystem,
